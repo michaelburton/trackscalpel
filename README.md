@@ -13,6 +13,12 @@ Split an audio file based on chapter marks in a Blu-ray MPLS playlist file
   down/up/to nearest 1/n of a second, useful for aligning to audio CD sectors
   or frames for gapless playback
 
+## Known issues
+
+SoundFile does not appear to provide a way to set channel layout metadata when
+writing files, so while this program can read and write 5.1 and 7.1 surround,
+it does not write channel layout.
+
 ## Requirements
 
 * Python 3.6+
