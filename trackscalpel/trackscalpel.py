@@ -1,7 +1,5 @@
 import argparse
-import numpy
 import os
-import soundfile
 import sys
 from math import ceil
 
@@ -9,7 +7,10 @@ from .splitpoints import read_chapters, align_splits
 
 def main():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('soundfile', help='Sound file to split')
+    argparser.add_argument('soundfile',
+            help='Sound file to split, or a sample rate in Hz to use for '
+                 'calculating split points. If no file is specified, '
+                 'the output and format parameters are ignored.')
     argparser.add_argument('-o', '--output', default='',
             help='Output directory for track files '
                  '(default: current directory)')
@@ -44,22 +45,39 @@ def main():
                   f'{int(chapter / precision) % 60:02}.'
                   f'{int(chapter / precision * 1000000) % 1000000:06}')
 
-    with soundfile.SoundFile(args.soundfile) as infile:
+    if os.path.exists(args.soundfile):
+        import soundfile
+        infile = soundfile.SoundFile(args.soundfile)
+        samplerate = infile.samplerate
+    else:
+        try:
+            samplerate = int(args.soundfile)
+            infile = None
+        except ValueError:
+            argparser.error(f'{args.soundfile} is not a file or a sample rate')
+
+    if args.align is None:
+        args.align = samplerate
+    elif not (samplerate / args.align).is_integer():
+        argparser.error(f'sample rate {samplerate} is not evenly divisible '
+                        f'into {args.align} blocks per second.')
+
+    # Calculate split points in terms of samples
+    splits = align_splits(chapters, precision, samplerate,
+            args.align, args.round)
+
+    # If no actual input file, print split points and exit
+    if infile is None:
+        print('\n'.join([str(i) for i in splits]))
+        return
+
+    with infile:
         if args.format is None:
             args.format = infile.format
             extension = os.path.splitext(args.soundfile)[1]
         else:
             extension = '.' + args.format.lower()
 
-        if args.align is None:
-            args.align = infile.samplerate
-        elif not (infile.samplerate / args.align).is_integer():
-            argparser.error(f'Input sample rate {infile.samplerate} is not '
-                    f'evenly divisible into {args.align} blocks per second.')
-
-        # Calculate split points and track lengths in terms of samples
-        splits = align_splits(chapters, precision, infile.samplerate,
-                args.align, args.round)
         # Make sure the last track ends where the input file ends
         while len(splits) > 0 and splits[-1] > len(infile):
             print(f'Warning: track {len(splits)} starts after the end of the '
@@ -67,6 +85,8 @@ def main():
             splits.pop()
         if len(splits) == 0 or splits[-1] < len(infile):
             splits.append(len(infile))
+
+        import numpy
         lengths = numpy.diff(splits)
 
         # Seek to the actual start of the first track if necessary
