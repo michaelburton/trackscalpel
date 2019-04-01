@@ -7,6 +7,7 @@ tracks based on those chapters
 
 * Read and write any format supported by SoundFile/libsndfile, including
   WAV, W64, AIFF and FLAC among others
+* Can delegate splitting to SoX to support other formats
 * Generate a list of sample-accurate cut points to use with other tools
 * Read MPLS directly for maximum precision: MPLS timestamps are accurate to
   1/45000 of a second whereas text chapter files are accurate to 1/1000s and
@@ -17,20 +18,22 @@ tracks based on those chapters
 
 ## Known issues
 
-SoundFile does not appear to provide a way to set channel layout metadata when
-writing files, so while this program can read and write 5.1 and 7.1 surround,
-it does not write channel layout.
+The Python SoundFile module does not appear to provide a way to set channel
+layout metadata when writing files, so while this program can read and write
+5.1 and 7.1 surround, it does not write channel layout. You can work around
+this limitation by delegating to SoX.
 
 ## Requirements
 
 * Python 3.6+
 * NumPy and SoundFile are required to read/write sound files
+* [SoX](http://sox.sourceforge.net/) (optional)
 
 ## Usage
 
 To install, run:
 
-    python setup.py install
+    pip install git+https://github.com/michaelburton/trackscalpel.git
 
 To list the sample numbers where each chapter in playlist 00001.mpls begins
 given a sample rate of 48kHz, run:

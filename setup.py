@@ -4,7 +4,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(name='trackscalpel',
-    version='0.2',
+    version='0.3',
     description='Split audio files based on Blu-ray MPLS playlists',
     long_description=readme,
     long_description_content_type = 'text/markdown',
