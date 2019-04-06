@@ -20,8 +20,13 @@ tracks based on those chapters
 
 The Python SoundFile module does not appear to provide a way to set channel
 layout metadata when writing files, so while this program can read and write
-5.1 and 7.1 surround, it does not write channel layout. You can work around
-this limitation by delegating to SoX.
+5.1 and 7.1 surround, it does not write channel layout. SoX does not properly
+preserve channel layout when working with WAV either, but does for FLAC so you
+can work around this problem by delegating cutting to SoX and using FLAC as
+both input and output format.
+
+WAV files over 2GB are not supported. You should use a format that supports
+large files such as FLAC or W64.
 
 ## Requirements
 
